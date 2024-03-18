@@ -1,5 +1,4 @@
 #%%
-from pynvim import Nvim
 from scipy.optimize import linprog
 
 from itertools import product
