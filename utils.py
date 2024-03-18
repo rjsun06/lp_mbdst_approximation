@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 import itertools
 
@@ -11,10 +12,13 @@ def fully_connected(N):
     ret[ind[:,1],np.arange(ne)]=1
     return ret
 
-def gen_case(N):
-    g = fully_connected(N)
-    c = np.random.randint(-N,N,N*(N-1)//2)
-    b = np.random.randint(1,N,N)
+def gen_case(N,mode = Literal('fully')):
+    if mode == 'fully':
+        g = fully_connected(N)
+        c = np.random.randint(-N,N,N*(N-1)//2)
+        b = np.random.randint(1,N,N)
+    else:
+        raise NotImplementedError("Use mode = 'fully' for now.")
     return g,c,b
 
 def is_feasible(g,c,b):
