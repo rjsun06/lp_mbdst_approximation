@@ -18,22 +18,31 @@ def linprog_MBDST(graph, costs, degree_bounds, degree_bound_mask=None, edges_tak
     some specified bound (constrain sum of the edge indicators incident to it)
     """
     nv,ne = graph.shape
+
+    #sanity
+    costs = np.array(costs)
     degree_bounds = np.array(degree_bounds)
-    if degree_bound_mask is None: degree_bound_mask = np.ones_like(degree_bounds).astype(bool)
+
+    if degree_bound_mask is None: degree_bound_mask = np.ones_like(nv)
+    degree_bound_mask = np.array(degree_bound_mask).astype(bool)
+
+    if edges_taken is None: edges_taken = np.zeros(ne)
+    edges_taken = np.array(edges_taken).astype(bool)
+
+    #main 
     A_ub, b_ub, A_eq, b_eq = linprog_MST_constraints(graph)
-    if edges_taken is not None:
-        for i in np.where(edges_taken.flatten())[0]:
-            A_eq = np.concatenate([A_eq,np.zeros((1,ne))],axis=0)
-            A_eq[-1,i] = 1
-            b_eq = np.append(b_eq,1)
-    # Add degree bound constraints.
+        # Add taken edge constraints.
+    A_eq = np.concatenate([A_eq,np.identity(ne)[edges_taken]],axis=0)
+    b_eq = np.concatenate([b_eq,np.ones(edges_taken.sum())],axis=0)
+        # Add degree bound constraints.
     A_ub = np.concatenate([A_ub,graph[degree_bound_mask]],axis=0)
     b_ub = np.concatenate([b_ub,degree_bounds[degree_bound_mask]],axis=0)
+
+        #solve
     bounds = (0, None)
-    # print(A_eq,b_eq)
-    # print(A_ub,b_ub)
     res = linprog(costs, A_ub, b_ub, A_eq, b_eq, bounds, method="highs-ds")
 
+        #report
     sol = res.x
     fval = res.fun
     return sol, fval
