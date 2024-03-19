@@ -100,4 +100,8 @@ pos = fix_pos(make_graph(G,C))
 visualize_step(MBDST2_step)(*gen_case(mode='bug',N=0))
 visualize_step(MBDST1_step)(*gen_case(mode='bug',N=0))
 #%% output demo
-visualize_step(MBDST3_step)(*gen_case(mode='bug',N=0))
+visualize_step(MBDST3_step)( 
+            fully_connected(6),
+            [5, 3, -4, -3, 3, 3, -1, 4, 3, 2, -6, -1, 2, 4, -4],
+            [1, 1, 2, 1, 1, 2]
+        )

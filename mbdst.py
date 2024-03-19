@@ -56,10 +56,11 @@ def MBDST2_step(G:np.ndarray, C, B):
     #2
     def fun():
         nonlocal G,C,B,e,W
-        while W.sum()>0: 
+        while W.any(): 
             #2a
-            e[:]= LP(G,C,B,W)
-            if e is None: yield None
+            tmp = LP(G,C,B,W)
+            if tmp is None: yield None
+            e[:]=tmp
             G[:,e==0] = 0
             C[e==0] = 0
             #2b
@@ -68,7 +69,7 @@ def MBDST2_step(G:np.ndarray, C, B):
             W[v] = 0
             yield np.sum(G,axis=0).astype(bool),e,W
         #3
-        e[:] = LP(G,C,B)
+        e[:] = LP(G,C,B,[]) != 0
         yield np.sum(G,axis=0).astype(bool),e,W
     #4
     return e,fun
