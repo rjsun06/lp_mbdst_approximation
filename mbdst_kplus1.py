@@ -3,7 +3,13 @@
 import numpy as np
 from lp_mbdst import linprog_MBDST
 from utils import *
+# LP = linprog_MBDST
 
+def MBDST_true(G,C,B):
+    return linprog_MBDST(G,C,B,integral=True)
+
+def MBDST_LP(G,C,B):
+    return linprog_MBDST(G,C,B)
 
 def MBDST1(G, C, B):
     LP = linprog_MBDST
@@ -14,7 +20,7 @@ def MBDST1(G, C, B):
     #2
     while np.sum(G)>0: 
         #2a
-        e,_ = LP(G,C,B,W)
+        e = LP(G,C,B,W)
         if e is None: return None
         # print(e)
         G[:,e==0]=0
@@ -23,9 +29,7 @@ def MBDST1(G, C, B):
         v = np.sum(G,axis=1) <= 1 
         e = np.logical_or.reduce(G[v,:],axis=0)
         T[e] = 1
-        G = G[np.logical_not(v),:]
-        W = W[np.logical_not(v)]
-        B = B[np.logical_not(v)]
+        G, W, B = [np.delete(arr, v, axis=0) for arr in (G, W, B)]
         B = B - np.sum(G,axis=1)
         G[:,e]=0
         C[e]=0
@@ -43,7 +47,7 @@ def MBDST2(G:np.ndarray, C, B):
     #2
     while W.sum()>0: 
         #2a
-        e,_ = LP(G,C,B,W)
+        e = LP(G,C,B,W)
         if e is None: return None
         G[:,e==0] = 0
         C[e==0] = 0
@@ -53,7 +57,7 @@ def MBDST2(G:np.ndarray, C, B):
         W[v] = 0
     #3
     # print(G,C)
-    e,_ = LP(G,C,B,W)
+    e = LP(G,C,B,W)
     #4
     return e.astype(int)
 
@@ -66,7 +70,7 @@ def MBDST3(G:np.ndarray, C, B):
     #2
     while F.sum()<nv-1: 
         #2a
-        e,_ = LP(G,C,B,W,F)
+        e = LP(G,C,B,W,F)
         if e is None: return None
         G[:,e==0] = 0
         C[e==0] = 0
@@ -100,10 +104,14 @@ if __name__ == "__main__":
     ]
     for g,c,b in cases:
         g,c,b = np.array(g), np.array(c), np.array(b)
+        feasible = is_feasible(g.copy(),c.copy(),b.copy())
         for alg in [MBDST1, MBDST2, MBDST3]:
             sol = alg(g.copy(), c.copy(), b.copy())
             if sol is None: 
-                print(None)
+                if feasible:
+                    print(None, 'BUT FEASIBLE.')
+                else:
+                    print(None, 'as desired')
                 continue
             fval = c @ sol
             deg = g @ sol

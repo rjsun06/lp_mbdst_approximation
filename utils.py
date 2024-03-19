@@ -12,19 +12,32 @@ def fully_connected(N):
     ret[ind[:,0],np.arange(ne)]=1
     ret[ind[:,1],np.arange(ne)]=1
     return ret
+weird_cases = [
+(np.array([[1., 1., 1., 1., 0., 0., 0., 0., 0., 0.],
+        [1., 0., 0., 0., 1., 1., 1., 0., 0., 0.],
+        [0., 1., 0., 0., 1., 0., 0., 1., 1., 0.],
+        [0., 0., 1., 0., 0., 1., 0., 1., 0., 1.],
+        [0., 0., 0., 1., 0., 0., 1., 0., 1., 1.]]), 
+        np.array([-1, -1, -2,  4, -3,  4,  3, -5,  2,  2]), 
+        np.array([1, 4, 4, 1, 1])),
+]
 
-def gen_case(N,mode:Literal['fully']='fully'):
+def gen_case(N=5,bound_c=None,bound_b=None,mode:Literal['fully','weird']='fully'):
+    if bound_c is None: bound_c = (-N,N)
+    if bound_b is None: bound_b = (1,N)
     if mode == 'fully':
         g = fully_connected(N)
-        c = np.random.randint(-N,N,N*(N-1)//2)
-        b = np.random.randint(1,N,N)
+        c = np.random.randint(*bound_c,g.shape[1])
+        b = np.random.randint(*bound_b,g.shape[0])
     # elif mode == 'random':
+    elif mode == 'weird':
+        return weird_cases[N]
     else:
-        raise NotImplementedError("Use mode = 'fully' for now.")
+        raise NotImplementedError('mode not available')
     return g,c,b
 
 def is_feasible(g,c,b):
-    x, _ = linprog_MBDST(g,c,b) 
+    x = linprog_MBDST(g,c,b) 
     return x is not None
 
 

@@ -1,8 +1,10 @@
 #%%
+from shutil import register_unpack_format
 import numpy as np
 import itertools
-from mbdst_kplus1 import MBDST1,MBDST2, MBDST3
+from mbdst_kplus1 import MBDST_true, MBDST_LP, MBDST1, MBDST2, MBDST3
 from utils import *
+from timeit import Timer
 
 _log = print
 def set_log(fun):
@@ -14,29 +16,60 @@ def test_single_MBDST(fun,N):
     ret = fun(*case)
     return ret
 
-def compare_results(funs,N):
-    g,c,b = gen_case(N)
+def compare_results(funs,case=gen_case(5),report_degrees=False,report_costs=False):
+    g,c,b = case
     ret = [f(g.copy(), c.copy(), b.copy()) for f in funs]
-    for tmp in ret:
-        if tmp is None and is_feasible(g,c,b):
-            _log('got None')
-            _log(ret)
-            _log(c,b)
-            return ret,-1
-    ret = np.stack(ret)
-    if np.logical_or.reduce(ret != ret[0],axis=0).any():
+    for _ in (x for x in ret if x is None):
+        return -1,{
+            'names':[f.__name__ for f in funs],
+            'x':ret,
+            'case':(g,c,b)}
+    if np.logical_or.reduce(np.stack(ret) != ret[0],axis=0).any():
+        return 1,{
+                'names':[f.__name__ for f in funs],
+                'x':ret,
+                'case':(g,c,b)}
+    return 0,{
+                'names':[f.__name__ for f in funs],
+                'x':ret,
+                'case':(g,c,b)}
+
+def report(stat,dic):
+    if stat == 0:
+        return
+    if stat == 1:
         _log('got diff')
-        _log(ret)
-        _log(c,b)
-        return ret,1
-    return ret,0
+        x = np.stack(dic['x'])
+        g,c,b = dic['case']
+        _log('x:')
+        _log(x)
+        _log('costs:')
+        _log(c@x.T)
+        _log('d bounds:')
+        _log(b.astype(float))
+        _log('degres:')
+        _log(x@g.T)
+        _log(dic['case'])
+        return
+    if stat == -1:
+        if is_feasible(*dic['case']):
+            _log('got None BUT FEASIBLE')
+            _log(dic['x'])
+            _log(dic['case'])
+        else:
+            _log('got None as expected')
+            _log(dic['case'][2])
+        return
 #%%
 def test():
     # test_single_MBDST(MBDST2,15)
-    compare_results((MBDST1,MBDST2,MBDST3),5)
+    # compare_results((MBDST_true,MBDST1,MBDST2,MBDST3),5,report_degrees=True)
+    # compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),7)
+    report(*compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),gen_case(5)))
     # compare_results((MBDST2,),10)
 
-from timeit import Timer
+
 t = Timer("test()", "from __main__ import test")
-print(t.timeit(10000))
+print(t.timeit(100))
 # %%
+report(*compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),gen_case(mode='weird',N=0)))
