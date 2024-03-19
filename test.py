@@ -1,6 +1,6 @@
 #%%
 import numpy as np
-from mbdst_kplus1 import MBDST_true, MBDST_LP, MBDST1, MBDST2, MBDST3
+from mbdst import MBDST_true, MBDST_LP, MBDST1, MBDST2, MBDST3
 from utils import *
 from timeit import Timer
 
