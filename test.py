@@ -1,8 +1,10 @@
 #%%
 import numpy as np
-from mbdst import MBDST_true, MBDST_LP, MBDST1, MBDST2, MBDST3
+from mbdst import *#MBDST_true, MBDST_LP, MBDST1, MBDST2, MBDST3
 from utils import *
 from timeit import Timer
+
+from visualization import visualize_graph, fix_pos, make_graph
 
 _log = print
 def set_log(fun):
@@ -56,18 +58,46 @@ def report(stat,dic):
     _log(x@g.T)
     _log(dic['case'])
     return
-#%%
+
+def visualize_step(alg_step):
+    def wait_for_space():
+        key = ''
+        while key != ' ':
+            key = input("Press the spacebar to continue: ")
+    def fun(G,C,B,pos=None):
+        nv,ne=G.shape
+        graph = make_graph(G.copy(),C)
+        ret,step=alg_step(G,C,B)
+        if pos is None:pos = fix_pos(graph)
+        visualize_graph(graph,pos,None,ret,np.ones(nv))
+        for gev in step():
+            if gev is None: return None
+            g,e,v = gev
+            wait_for_space()
+            # graph = make_graph(g,C)
+            visualize_graph(graph,pos,g,ret.astype(bool),v)
+    return fun
+#%% search weird cases
 def test():
     # test_single_MBDST(MBDST2,15)
     # compare_results((MBDST_true,MBDST1,MBDST2,MBDST3),5,report_degrees=True)
     # compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),7)
     report(*compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),
-                            gen_case(10)))
+                            gen_case(6)))
     # compare_results((MBDST2,),10)
 
 
 t = Timer("test()", "from __main__ import test")
-print(t.timeit(100))
-# %%
+print(t.timeit(1))
+# %% check weird case
 report(*compare_results((MBDST_LP,MBDST_true,MBDST1,MBDST2,MBDST3),
                         gen_case(mode='bug',N=0)))
+
+#%% visualize step
+G,C,B = gen_case(mode='bug',N=0)
+pos = fix_pos(make_graph(G,C))
+#%%
+visualize_step(MBDST2_step)(*gen_case(mode='bug',N=0))
+visualize_step(MBDST1_step)(*gen_case(mode='bug',N=0))
+#%% output demo
+visualize_step(MBDST3_step)(*gen_case(mode='bug',N=0))

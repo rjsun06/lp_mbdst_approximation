@@ -26,7 +26,7 @@ def gen_case(N=5,bound_c=None,bound_b=None,mode:Literal['fully','weird']='fully'
     elif mode == 'weird':
         return weird_cases[N]
     elif mode == 'bug':
-        return bug_cases[N]
+        return map(np.array,bug_cases[N])
     else:
         raise NotImplementedError('mode not available')
     return g,c,b
