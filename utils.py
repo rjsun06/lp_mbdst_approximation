@@ -3,6 +3,7 @@ from typing import Literal
 import numpy as np
 import itertools
 from lp_mbdst import linprog_MBDST
+from weird_cases import weird_cases, bug_cases
 
 #%% testing
 def fully_connected(N):
@@ -12,15 +13,7 @@ def fully_connected(N):
     ret[ind[:,0],np.arange(ne)]=1
     ret[ind[:,1],np.arange(ne)]=1
     return ret
-weird_cases = [
-(np.array([[1., 1., 1., 1., 0., 0., 0., 0., 0., 0.],
-        [1., 0., 0., 0., 1., 1., 1., 0., 0., 0.],
-        [0., 1., 0., 0., 1., 0., 0., 1., 1., 0.],
-        [0., 0., 1., 0., 0., 1., 0., 1., 0., 1.],
-        [0., 0., 0., 1., 0., 0., 1., 0., 1., 1.]]), 
-        np.array([-1, -1, -2,  4, -3,  4,  3, -5,  2,  2]), 
-        np.array([1, 4, 4, 1, 1])),
-]
+
 
 def gen_case(N=5,bound_c=None,bound_b=None,mode:Literal['fully','weird']='fully'):
     if bound_c is None: bound_c = (-N,N)
@@ -32,6 +25,8 @@ def gen_case(N=5,bound_c=None,bound_b=None,mode:Literal['fully','weird']='fully'
     # elif mode == 'random':
     elif mode == 'weird':
         return weird_cases[N]
+    elif mode == 'bug':
+        return bug_cases[N]
     else:
         raise NotImplementedError('mode not available')
     return g,c,b
